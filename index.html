@@ -3,144 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Locked Screen Party Game</title>
+    <title>Party Game with Auto-Save</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
     <style>
-        /* --- ชุดคำสั่งล็อคหน้าจอสำหรับ iPad/iPhone โดยเฉพาะ --- */
+        /* --- Styles เดิม --- */
         html, body {
             background-color: #0f5132;
             background-image: radial-gradient(circle at center, #146c43 0%, #0a3622 100%);
-            overflow: hidden; /* ห้าม Scroll */
-            user-select: none; /* ห้ามคลุมดำ */
+            overflow: hidden;
+            user-select: none;
             font-family: 'Sarabun', sans-serif;
-            
-            /* Key Fix: ปิดการซูมและเลื่อนทุกชนิด */
-            touch-action: none; 
-            -ms-touch-action: none;
-            overscroll-behavior: none; /* ปิดเด้งดึ๋ง */
-            -webkit-touch-callout: none; /* ปิดเมนูคลิกค้าง */
-            height: 100vh;
-            width: 100vw;
-            position: fixed; /* ล็อคให้อยู่กับที่ */
+            touch-action: none; -ms-touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none;
+            height: 100vh; width: 100vw; position: fixed;
         }
 
         .scene {
             perspective: 1200px;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
             padding-top: 40px;
         }
 
-        .deck-container {
-            position: relative;
-            width: 220px;
-            height: 330px;
-        }
+        .deck-container { position: relative; width: 220px; height: 330px; }
 
         .card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 1rem;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            /* ป้องกันการแตะซ้ำซ้อนบนตัวการ์ด */
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 1rem; transform-style: preserve-3d;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             -webkit-tap-highlight-color: transparent;
         }
 
         .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 1rem;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 1rem; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
             border: 1px solid rgba(0,0,0,0.1);
         }
 
         .card-back {
             background-color: #b91c1c;
             background-image: repeating-linear-gradient(45deg, #991b1b 25%, transparent 25%, transparent 75%, #991b1b 75%, #991b1b), repeating-linear-gradient(45deg, #991b1b 25%, #b91c1c 25%, #b91c1c 75%, #991b1b 75%, #991b1b);
-            background-position: 0 0, 10px 10px;
-            background-size: 20px 20px;
-            border: 6px solid white;
+            background-position: 0 0, 10px 10px; background-size: 20px 20px; border: 6px solid white;
         }
-        
         .card-back::after { content: "♠"; font-size: 4rem; color: white; opacity: 0.2; }
 
         .card-front {
-            background: white;
-            transform: rotateY(180deg);
-            color: #1a1a1a;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border: 2px solid #e5e7eb;
+            background: white; transform: rotateY(180deg); color: #1a1a1a;
+            font-size: 1.5rem; font-weight: bold; border: 2px solid #e5e7eb;
         }
 
         .card.active {
-            z-index: 3000 !important;
-            transform: translate(0, -40px) scale(1.25) rotateY(180deg) !important;
+            z-index: 3000 !important; transform: translate(0, -40px) scale(1.25) rotateY(180deg) !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
         .card.discarded {
-            transform: translate(-150%, 0) rotate(-45deg) !important;
-            opacity: 0;
-            transition: all 0.4s ease-in;
+            transform: translate(-150%, 0) rotate(-45deg) !important; opacity: 0; transition: all 0.4s ease-in;
         }
 
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .text-pop {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        .text-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
         .side-btn {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 9999px;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            /* ป้องกัน Zoom บนปุ่ม */
-            touch-action: manipulation; 
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+            border-radius: 9999px; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 70px; height: 70px; margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); touch-action: manipulation;
         }
-        
         .side-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
         .side-btn:active { transform: scale(0.95); }
         .side-btn span { font-size: 24px; }
         .side-btn p { font-size: 10px; margin-top: 4px; font-weight: bold; }
-        
-        .side-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: rgba(0,0,0,0.2);
-        }
+        .side-btn:disabled { opacity: 0.5; cursor: not-allowed; background: rgba(0,0,0,0.2); }
 
         @media (min-width: 768px) {
             .deck-container { width: 300px; height: 450px; }
@@ -148,6 +88,22 @@
             .side-btn span { font-size: 32px; }
             .side-btn p { font-size: 12px; }
         }
+
+        /* Modal Styles */
+        #custom-modal { transition: opacity 0.3s ease; }
+        .modal-content {
+            background: rgba(15, 65, 40, 0.95); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        input, select {
+            background: rgba(30, 90, 60, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: #facc15; box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        select option { background-color: #14532d; color: white; }
     </style>
 </head>
 <body>
@@ -156,9 +112,14 @@
         <h1 id="status-text" class="text-3xl md:text-5xl font-bold text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-pop leading-tight">
             พร้อมแล้ว... จั่วเลย!
         </h1>
+        <p id="card-count" class="text-white/60 text-sm mt-2 font-bold"></p>
     </div>
 
     <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col items-center">
+        <button onclick="toggleModal(true)" class="side-btn hover:bg-blue-500/40 border-blue-400/50">
+            <span class="material-icons-round text-blue-300">edit</span>
+            <p class="text-blue-100">แก้ไพ่</p>
+        </button>
         <button id="btn-shuffle" onclick="startShuffleSequence()" class="side-btn bg-yellow-500/20 hover:bg-yellow-500/40 border-yellow-400/50">
             <span class="material-icons-round text-yellow-300">shuffle</span>
             <p class="text-yellow-100">สับไพ่</p>
@@ -173,16 +134,68 @@
         <div class="deck-container" id="deck"></div>
     </div>
 
-    <script>
-        // --- ส่วนเสริม: ป้องกันการ Zoom ทุกรูปแบบด้วย JS ---
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-        document.addEventListener('dblclick', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+    <div id="custom-modal" class="fixed inset-0 z-[100] hidden bg-black/80 flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-md p-6 rounded-2xl shadow-2xl text-white">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-yellow-400 drop-shadow-sm">⚡ เพิ่มการ์ดเอง</h2>
+                <button onclick="toggleModal(false)" class="text-green-200/70 hover:text-white transition">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
 
-        // --- Game Logic ---
+            <div class="space-y-5">
+                <div>
+                    <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">คำสั่งในการ์ด</label>
+                    <input type="text" id="inp-text" placeholder="เช่น คนซ้ายดื่ม 2 แก้ว..." class="w-full p-3 rounded-xl mt-2">
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="w-2/3">
+                        <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">ประเภท</label>
+                        <select id="inp-type" class="w-full p-3 rounded-xl mt-2 appearance-none">
+                            <option value="drink">🍺 ดื่ม (Drink)</option>
+                            <option value="hard">🔥 โหด (Hard)</option>
+                            <option value="action">💃 กิจกรรม (Action)</option>
+                            <option value="lucky">🍀 รอดตัว (Lucky)</option>
+                        </select>
+                    </div>
+                    <div class="w-1/3">
+                        <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">จำนวนใบ</label>
+                        <input type="number" id="inp-count" value="1" min="1" max="50" class="w-full p-3 rounded-xl mt-2 text-center">
+                    </div>
+                </div>
+
+                <button onclick="addCustomCard()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-xl transition transform active:scale-95 shadow-lg shadow-yellow-500/20">
+                    + เพิ่มเข้ากอง
+                </button>
+            </div>
+
+            <hr class="border-white/10 my-6">
+
+            <div class="flex flex-col gap-3">
+                <div class="flex justify-between text-sm text-green-200/80 px-1">
+                    <span>การ์ดในกองตอนนี้: <strong id="modal-total" class="text-yellow-400 text-base">14</strong> ใบ</span>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="restoreDefaultDeck()" class="flex-1 py-3 border border-white/20 text-gray-300 rounded-xl hover:bg-white/10 text-sm font-bold transition">
+                        คืนค่าเริ่มต้น
+                    </button>
+                    <button onclick="clearDeckData()" class="flex-1 py-3 border border-red-500/40 text-red-300 rounded-xl hover:bg-red-500/20 text-sm font-bold transition">
+                        ล้างทั้งหมด
+                    </button>
+                </div>
+                <button onclick="applyAndClose()" class="w-full py-3 bg-green-500 hover:bg-green-400 text-white rounded-xl shadow-lg shadow-green-500/30 font-bold transition transform active:scale-95">
+                    บันทึกและเริ่มเล่น
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
+
         const SoundFX = {
             ctx: null, buffer: null,
             init: function() {
@@ -193,52 +206,42 @@
                     const bufferSize = sampleRate * duration;
                     const buffer = this.ctx.createBuffer(1, bufferSize, sampleRate);
                     const data = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        const white = Math.random() * 2 - 1;
-                        data[i] = white * 0.1; 
-                    }
+                    for (let i = 0; i < bufferSize; i++) { data[i] = (Math.random() * 2 - 1) * 0.1; }
                     this.buffer = buffer;
                 }
             },
-            playSnap: function() {
+            playSnap: function() { this.playNoise(800, 'highpass'); },
+            playSlide: function() { this.playOsc(150, 'triangle', 0.2); },
+            playTone: function(freq, type) { this.playOsc(freq, type, 0.3); },
+            playNoise: function(freq, type) {
                 if (!this.ctx || !this.buffer) return;
-                const source = this.ctx.createBufferSource(); source.buffer = this.buffer;
-                const filter = this.ctx.createBiquadFilter(); filter.type = "highpass"; filter.frequency.value = 800;
-                const gain = this.ctx.createGain(); gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.8, this.ctx.currentTime + 0.005);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
-                source.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
-                source.start(); source.stop(this.ctx.currentTime + 0.1);
+                const src = this.ctx.createBufferSource(); src.buffer = this.buffer;
+                const f = this.ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq;
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.8, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+                src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+                src.start(); src.stop(this.ctx.currentTime + 0.1);
             },
-            playSlide: function() {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator(); osc.type = 'triangle';
-                const gain = this.ctx.createGain();
-                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(50, this.ctx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.2);
-            },
-            playTone: function(freq, type) {
+            playOsc: function(freq, type, dur) {
                 if (!this.ctx) return;
                 const osc = this.ctx.createOscillator(); osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                const gain = this.ctx.createGain(); gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+                osc.connect(g); g.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + dur);
             }
         };
 
-        const initialCardData = [
+        // --- Default Data (Hardcoded) ---
+        const defaultDeckData = [
             { text: "หมดแก้วเดี๋ยวนี้!", type: "hard" },
             { text: "คนซ้ายดื่ม 1", type: "drink" },
             { text: "คนขวาดื่ม 1", type: "drink" },
             { text: "จ้องตาห้ามกระพริบ", type: "action" },
             { text: "คนใส่แว่นดื่ม", type: "drink" },
             { text: "ใครโสดดื่มหมดแก้ว", type: "hard" },
-            { text: "เล่าเรื่องผี 1 เรื่อง", type: "action" },
+            { text: "เล่าเรื่องผี", type: "action" },
             { text: "เต้นไก่ย่าง 10 วิ", type: "action" },
             { text: "โทรหาแฟนเก่า", type: "hard" },
             { text: "พูดความลับ", type: "action" },
@@ -248,8 +251,10 @@
             { text: "พักดื่มน้ำ 1 แก้ว", type: "lucky" }
         ];
 
-        const fullDeck = initialCardData.map((card, index) => ({ ...card, id: index }));
-        let currentDeck = [...fullDeck];
+        // --- Variables ---
+        let masterDeck = []; // โหลดจาก Save หรือ Default
+        let activeDeck = [];
+        let currentDeckState = [];
 
         const reactionMap = {
             hard: ["เรียบร้อยครับจารย์!", "สู่ขิต...", "ลาก่อยยยยย", "ไม่ไหวอย่าฝืน"],
@@ -257,16 +262,89 @@
             action: ["อย่าเขินดิวะ!", "เอาให้สุด!", "กล้าป่าววว?", "ขอตึงๆ นะ"],
             lucky: ["ทำบุญด้วยอะไรมา?", "รอดเฉยยยย", "แต้มบุญสูงนะเรา", "งวดนี้หวยออกแน่"]
         };
-
-        const waitingTexts = [
-            "ตาใครเอ่ย?", "มือสั่นทำไม?", "ใบต่อไปโหดแน่", "หยิบสิ อย่าลีลา", "จ้องหน้าทำไม จั่วสิ!"
-        ];
+        const waitingTexts = ["ตาใครเอ่ย?", "มือสั่นทำไม?", "ใบต่อไปโหดแน่", "หยิบสิ อย่าลีลา"];
 
         const deckContainer = document.getElementById('deck');
         const statusText = document.getElementById('status-text');
+        const countText = document.getElementById('card-count');
         const shuffleBtn = document.getElementById('btn-shuffle');
+        const modal = document.getElementById('custom-modal');
         let isShuffling = false;
 
+        // --- Load / Save Logic ---
+        function loadDeck() {
+            const saved = localStorage.getItem('party_game_deck');
+            if (saved) {
+                try {
+                    masterDeck = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Save file corrupted, loading default.");
+                    masterDeck = [...defaultDeckData];
+                }
+            } else {
+                masterDeck = [...defaultDeckData];
+            }
+        }
+
+        function saveDeck() {
+            localStorage.setItem('party_game_deck', JSON.stringify(masterDeck));
+        }
+
+        // --- Modal Functions ---
+        function toggleModal(show) {
+            if (show) {
+                modal.classList.remove('hidden');
+                document.getElementById('modal-total').innerText = masterDeck.length;
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function addCustomCard() {
+            const text = document.getElementById('inp-text').value.trim();
+            const type = document.getElementById('inp-type').value;
+            const count = parseInt(document.getElementById('inp-count').value);
+
+            if (!text) return alert("ใส่ข้อความก่อนสิครับ!");
+
+            for(let i=0; i<count; i++) {
+                masterDeck.push({ text, type });
+            }
+            saveDeck(); // Save ทันที
+
+            document.getElementById('inp-text').value = '';
+            document.getElementById('modal-total').innerText = masterDeck.length;
+            
+            const btn = document.querySelector('button[onclick="addCustomCard()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<span class='material-icons-round'>check</span> เรียบร้อย!";
+            setTimeout(() => btn.innerHTML = originalText, 1000);
+        }
+
+        function clearDeckData() {
+            if(confirm("จะลบการ์ดทั้งหมดจริงหรอ?")) {
+                masterDeck = [];
+                saveDeck(); // Save ทันที
+                document.getElementById('modal-total').innerText = 0;
+            }
+        }
+        
+        function restoreDefaultDeck() {
+            if(confirm("จะคืนค่าเป็นการ์ดเริ่มต้นไหม? (การ์ดที่คุณแต่งเองจะหายหมด)")) {
+                masterDeck = [...defaultDeckData];
+                saveDeck();
+                document.getElementById('modal-total').innerText = masterDeck.length;
+                alert("คืนค่าเรียบร้อย!");
+            }
+        }
+
+        function applyAndClose() {
+            if (masterDeck.length === 0) return alert("ไม่มีการ์ดเลย! เพิ่มก่อนสิ");
+            instantRestart();
+            toggleModal(false);
+        }
+
+        // --- Game Logic ---
         function updateStatus(mode, category = null) {
             let text = "";
             statusText.className = "text-3xl md:text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight"; 
@@ -274,8 +352,8 @@
             statusText.classList.add('text-pop');
 
             if (mode === 'waiting') {
-                if (currentDeck.length === 0) {
-                    text = "หมดกองแล้ว! กดเริ่มใหม่";
+                if (currentDeckState.length === 0) {
+                    text = "หมดกองแล้ว!";
                     statusText.classList.add('text-gray-300');
                     shuffleBtn.disabled = true;
                 } else {
@@ -283,8 +361,7 @@
                     statusText.classList.add('text-yellow-400');
                     shuffleBtn.disabled = false;
                 }
-            }
-            else if (mode === 'reaction' && category) {
+            } else if (mode === 'reaction' && category) {
                 const options = reactionMap[category] || reactionMap['drink'];
                 text = options[Math.floor(Math.random() * options.length)];
                 if (category === 'hard') statusText.classList.add('text-red-600'); 
@@ -292,80 +369,75 @@
                 else statusText.classList.add('text-red-400'); 
             }
             statusText.innerText = text;
+            countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
         }
 
         function instantRestart() {
             if (isShuffling) return;
             SoundFX.init();
             SoundFX.playSlide();
-            currentDeck = [...fullDeck];
+            
+            // ใช้ masterDeck ที่โหลดมาล่าสุด
+            activeDeck = masterDeck.map((c, i) => ({ ...c, id: i }));
+            currentDeckState = [...activeDeck];
+            
             deployRealDeck();
             updateStatus('waiting');
         }
 
         function startShuffleSequence() {
-            if (isShuffling) return;
-            if (currentDeck.length === 0) return;
-
+            if (isShuffling || currentDeckState.length === 0) return;
             isShuffling = true;
             SoundFX.init();
             deckContainer.innerHTML = ''; 
             updateStatus('waiting'); 
 
-            const STUNT_COUNT = Math.min(8, currentDeck.length);
+            const STUNT_COUNT = Math.min(8, currentDeckState.length);
             const stuntCards = [];
             
             for(let i=0; i<STUNT_COUNT; i++) {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.style.transform = `translate(0, 0) rotate(0deg)`;
-                card.innerHTML = `<div class="card-face card-back"></div>`; 
-                deckContainer.appendChild(card);
-                stuntCards.push(card);
+                const c = document.createElement('div');
+                c.className = 'card';
+                c.innerHTML = `<div class="card-face card-back"></div>`;
+                deckContainer.appendChild(c);
+                stuntCards.push(c);
             }
 
-            stuntCards.forEach((card, i) => {
+            stuntCards.forEach((c, i) => {
                 setTimeout(() => {
                     SoundFX.playSnap();
-                    card.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    const centerIndex = STUNT_COUNT / 2;
-                    const spreadX = (i - centerIndex) * 25; 
-                    const jumpY = -110; 
-                    const rotate = (i - centerIndex) * 5; 
-                    card.style.transform = `translate(${spreadX}px, ${jumpY}px) rotate(${rotate}deg)`;
+                    c.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    const spread = (i - STUNT_COUNT/2) * 25;
+                    c.style.transform = `translate(${spread}px, -110px) rotate(${(i - STUNT_COUNT/2)*5}deg)`;
                 }, i * 30);
             });
 
-            const fallStartTime = (STUNT_COUNT * 30) + 500;
-            const fallStagger = 50;
-            
-            stuntCards.forEach((card, i) => {
+            const fallTime = (STUNT_COUNT * 30) + 500;
+            stuntCards.forEach((c, i) => {
                 setTimeout(() => {
-                    card.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    const randomRot = (Math.random() * 2) - 1;
-                    card.style.transform = `translate(0px, 0px) rotate(${randomRot}deg)`;
-                }, fallStartTime + (i * fallStagger));
+                    c.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    c.style.transform = `translate(0,0) rotate(${Math.random()*2-1}deg)`;
+                }, fallTime + (i * 50));
             });
 
-            const finishTime = fallStartTime + (STUNT_COUNT * fallStagger) + 800; 
-            
             setTimeout(() => {
                 deployRealDeck();
                 isShuffling = false;
-            }, finishTime);
+            }, fallTime + (STUNT_COUNT * 50) + 800);
         }
 
         function deployRealDeck() {
             deckContainer.innerHTML = '';
-            const shuffled = [...currentDeck].sort(() => Math.random() - 0.5);
+            const shuffled = [...currentDeckState].sort(() => Math.random() - 0.5);
+            
             shuffled.forEach((item, index) => {
                 const card = document.createElement('div');
-                card.classList.add('card');
+                card.className = 'card';
                 card.style.zIndex = index + 1;
                 card.dataset.id = item.id;
                 card.dataset.type = item.type;
-                const randomRot = (Math.random() * 2) - 1; 
-                card.style.transform = `translate(0px, 0px) rotate(${randomRot}deg)`;
+                card.style.transform = `translate(0,0) rotate(${Math.random()*2-1}deg)`;
+                
                 card.innerHTML = `
                     <div class="card-face card-back"></div>
                     <div class="card-face card-front">
@@ -378,39 +450,40 @@
                 card.onclick = () => handleCardClick(card);
                 deckContainer.appendChild(card);
             });
+            countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
         }
 
         function handleCardClick(card) {
-            if (isShuffling) return; 
-            if (card.classList.contains('discarded')) return;
+            if (isShuffling || card.classList.contains('discarded')) return;
             SoundFX.init();
 
             if (card.classList.contains('active')) {
-                SoundFX.playSlide(); 
+                SoundFX.playSlide();
                 card.classList.remove('active');
                 card.classList.add('discarded');
-                const cardId = parseInt(card.dataset.id);
-                currentDeck = currentDeck.filter(c => c.id !== cardId);
-                setTimeout(() => { updateStatus('waiting'); }, 300);
+                
+                const id = parseInt(card.dataset.id);
+                currentDeckState = currentDeckState.filter(c => c.id !== id);
+                countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
+
+                setTimeout(() => updateStatus('waiting'), 300);
                 setTimeout(() => card.remove(), 600);
             } else {
-                const nextCard = card.nextElementSibling;
-                if (!nextCard || nextCard.classList.contains('discarded')) {
+                const next = card.nextElementSibling;
+                if (!next || next.classList.contains('discarded')) {
                     card.classList.add('active');
-                    const cardType = card.dataset.type;
-                    updateStatus('reaction', cardType);
-                    if (cardType === 'hard') SoundFX.playTone(100, 'sawtooth');
-                    else if (cardType === 'lucky') SoundFX.playTone(600, 'sine');
+                    updateStatus('reaction', card.dataset.type);
+                    const t = card.dataset.type;
+                    if(t==='hard') SoundFX.playTone(100, 'sawtooth');
+                    else if(t==='lucky') SoundFX.playTone(600, 'sine');
                     else SoundFX.playTone(400, 'sine');
                 }
             }
         }
 
-        setTimeout(() => {
-            deployRealDeck();
-            updateStatus('waiting');
-        }, 100);
-
+        // --- Init ---
+        loadDeck(); // โหลดเซฟก่อน
+        setTimeout(() => instantRestart(), 100);
     </script>
 </body>
 </html>
