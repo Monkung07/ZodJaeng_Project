@@ -2,19 +2,29 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Shuffle Party Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Locked Screen Party Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
     <style>
-        body {
+        /* --- ชุดคำสั่งล็อคหน้าจอสำหรับ iPad/iPhone โดยเฉพาะ --- */
+        html, body {
             background-color: #0f5132;
             background-image: radial-gradient(circle at center, #146c43 0%, #0a3622 100%);
-            overflow: hidden;
-            user-select: none;
+            overflow: hidden; /* ห้าม Scroll */
+            user-select: none; /* ห้ามคลุมดำ */
             font-family: 'Sarabun', sans-serif;
+            
+            /* Key Fix: ปิดการซูมและเลื่อนทุกชนิด */
+            touch-action: none; 
+            -ms-touch-action: none;
+            overscroll-behavior: none; /* ปิดเด้งดึ๋ง */
+            -webkit-touch-callout: none; /* ปิดเมนูคลิกค้าง */
+            height: 100vh;
+            width: 100vw;
+            position: fixed; /* ล็อคให้อยู่กับที่ */
         }
 
         .scene {
@@ -41,6 +51,8 @@
             transform-style: preserve-3d;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            /* ป้องกันการแตะซ้ำซ้อนบนตัวการ์ด */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .card-face {
@@ -115,6 +127,8 @@
             height: 70px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            /* ป้องกัน Zoom บนปุ่ม */
+            touch-action: manipulation; 
         }
         
         .side-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
@@ -122,7 +136,6 @@
         .side-btn span { font-size: 24px; }
         .side-btn p { font-size: 10px; margin-top: 4px; font-weight: bold; }
         
-        /* Disabled state for shuffle button when deck is empty */
         .side-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -146,17 +159,14 @@
     </div>
 
     <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col items-center">
-        
         <button id="btn-shuffle" onclick="startShuffleSequence()" class="side-btn bg-yellow-500/20 hover:bg-yellow-500/40 border-yellow-400/50">
             <span class="material-icons-round text-yellow-300">shuffle</span>
             <p class="text-yellow-100">สับไพ่</p>
         </button>
-
         <button onclick="instantRestart()" class="side-btn hover:bg-white/20 border-white/20">
             <span class="material-icons-round">replay</span>
             <p>เริ่มใหม่</p>
         </button>
-        
     </div>
 
     <div class="scene">
@@ -164,6 +174,15 @@
     </div>
 
     <script>
+        // --- ส่วนเสริม: ป้องกันการ Zoom ทุกรูปแบบด้วย JS ---
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // --- Game Logic ---
         const SoundFX = {
             ctx: null, buffer: null,
             init: function() {
@@ -229,13 +248,7 @@
             { text: "พักดื่มน้ำ 1 แก้ว", type: "lucky" }
         ];
 
-        // --- เพิ่ม ID ให้การ์ดแต่ละใบเพื่อใช้ตรวจสอบการลบ ---
-        const fullDeck = initialCardData.map((card, index) => ({
-            ...card,
-            id: index
-        }));
-
-        // State เก็บการ์ดที่เหลืออยู่
+        const fullDeck = initialCardData.map((card, index) => ({ ...card, id: index }));
         let currentDeck = [...fullDeck];
 
         const reactionMap = {
@@ -264,7 +277,7 @@
                 if (currentDeck.length === 0) {
                     text = "หมดกองแล้ว! กดเริ่มใหม่";
                     statusText.classList.add('text-gray-300');
-                    shuffleBtn.disabled = true; // ปิดปุ่มสับไพ่ถ้าหมดกอง
+                    shuffleBtn.disabled = true;
                 } else {
                     text = waitingTexts[Math.floor(Math.random() * waitingTexts.length)];
                     statusText.classList.add('text-yellow-400');
@@ -281,31 +294,24 @@
             statusText.innerText = text;
         }
 
-        // --- ปุ่มเริ่มใหม่ (Reset Full Deck) ---
         function instantRestart() {
             if (isShuffling) return;
             SoundFX.init();
             SoundFX.playSlide();
-            
-            // รีเซ็ต state กลับเป็นไพ่ครบกอง
             currentDeck = [...fullDeck];
-            
             deployRealDeck();
             updateStatus('waiting');
         }
 
-        // --- ปุ่มสับไพ่ (Shuffle Remaining) ---
         function startShuffleSequence() {
             if (isShuffling) return;
-            if (currentDeck.length === 0) return; // ถ้าไพ่หมด สับไม่ได้
+            if (currentDeck.length === 0) return;
 
             isShuffling = true;
             SoundFX.init();
             deckContainer.innerHTML = ''; 
             updateStatus('waiting'); 
 
-            // ปรับจำนวนการ์ดอนิเมชั่นให้ไม่เกินจำนวนการ์ดจริงที่เหลือ
-            // เช่น ถ้าเหลือ 3 ใบ ก็โชว์สับแค่ 3 ใบ พอ
             const STUNT_COUNT = Math.min(8, currentDeck.length);
             const stuntCards = [];
             
@@ -351,18 +357,13 @@
 
         function deployRealDeck() {
             deckContainer.innerHTML = '';
-            
-            // สับเฉพาะการ์ดที่เหลืออยู่ (currentDeck)
             const shuffled = [...currentDeck].sort(() => Math.random() - 0.5);
-            
             shuffled.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.classList.add('card');
                 card.style.zIndex = index + 1;
-                // เก็บ ID ไว้ใน dataset เพื่อใช้ตอนลบ
                 card.dataset.id = item.id;
                 card.dataset.type = item.type;
-                
                 const randomRot = (Math.random() * 2) - 1; 
                 card.style.transform = `translate(0px, 0px) rotate(${randomRot}deg)`;
                 card.innerHTML = `
@@ -382,18 +383,14 @@
         function handleCardClick(card) {
             if (isShuffling) return; 
             if (card.classList.contains('discarded')) return;
-
             SoundFX.init();
 
             if (card.classList.contains('active')) {
                 SoundFX.playSlide(); 
                 card.classList.remove('active');
                 card.classList.add('discarded');
-
-                // --- LOGIC: ลบการ์ดออกจากกอง (Update State) ---
                 const cardId = parseInt(card.dataset.id);
                 currentDeck = currentDeck.filter(c => c.id !== cardId);
-
                 setTimeout(() => { updateStatus('waiting'); }, 300);
                 setTimeout(() => card.remove(), 600);
             } else {
@@ -402,7 +399,6 @@
                     card.classList.add('active');
                     const cardType = card.dataset.type;
                     updateStatus('reaction', cardType);
-
                     if (cardType === 'hard') SoundFX.playTone(100, 'sawtooth');
                     else if (cardType === 'lucky') SoundFX.playTone(600, 'sine');
                     else SoundFX.playTone(400, 'sine');
@@ -410,7 +406,6 @@
             }
         }
 
-        // --- เริ่มเกมทันที ---
         setTimeout(() => {
             deployRealDeck();
             updateStatus('waiting');
