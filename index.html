@@ -3,23 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Party Game Premium UI</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Party Game">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/931/931949.png">
+
+    <title>Party Game Fullscreen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
     <style>
-        /* --- Core Styles --- */
+        /* --- Styles --- */
         html, body {
             background-color: #0f5132;
             background-image: radial-gradient(circle at center, #146c43 0%, #0a3622 100%);
             overflow: hidden; user-select: none; font-family: 'Sarabun', sans-serif;
-            touch-action: none; height: 100vh; width: 100vw; position: fixed;
+            touch-action: none; -ms-touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none;
+            height: 100vh; width: 100vw; position: fixed;
+            
+            /* ป้องกันการเด้งเวลาเลื่อนจอ */
+            top: 0; left: 0; right: 0; bottom: 0;
         }
 
         .scene {
             perspective: 1200px; width: 100%; height: 100vh;
-            display: flex; align-items: center; justify-content: center; padding-top: 40px;
+            display: flex; align-items: center; justify-content: center;
+            /* ขยับลงนิดนึงเผื่อติด Notch */
+            padding-top: env(safe-area-inset-top); 
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .deck-container { position: relative; width: 220px; height: 330px; }
@@ -81,19 +94,15 @@
             .side-btn p { font-size: 12px; }
         }
 
-        /* --- New UI Components Styles --- */
+        /* Modal UI */
         .glass-panel {
             background: rgba(15, 65, 40, 0.95); backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        
-        input {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;
-        }
+        input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
         input:focus { outline: none; border-color: #facc15; box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3); }
 
-        /* Custom Dropdown Styling */
         .custom-select-container { position: relative; width: 100%; }
         .custom-select-trigger {
             width: 100%; padding: 12px; border-radius: 0.75rem;
@@ -121,7 +130,7 @@
 </head>
 <body>
 
-    <div class="fixed top-6 w-full text-center z-40 pointer-events-none px-12">
+    <div class="fixed top-12 w-full text-center z-40 pointer-events-none px-12">
         <h1 id="status-text" class="text-3xl md:text-5xl font-bold text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-pop leading-tight">
             พร้อมแล้ว... จั่วเลย!
         </h1>
@@ -167,7 +176,6 @@
                 <div class="flex gap-4">
                     <div class="w-2/3">
                         <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">ประเภท</label>
-                        
                         <div class="custom-select-container mt-2">
                             <div class="custom-select-trigger" onclick="toggleCustomSelect()">
                                 <span id="selected-val-display" class="flex items-center gap-2">🍺 ดื่ม (Drink)</span>
@@ -181,7 +189,7 @@
                             </div>
                             <input type="hidden" id="inp-type" value="drink">
                         </div>
-                        </div>
+                    </div>
                     <div class="w-1/3">
                         <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">จำนวนใบ</label>
                         <input type="number" id="inp-count" value="1" min="1" max="50" class="w-full p-3 rounded-xl mt-2 text-center">
@@ -307,32 +315,25 @@
         const confirmModal = document.getElementById('confirm-modal');
         let isShuffling = false;
 
-        // --- Custom Dropdown Logic ---
         function toggleCustomSelect() {
             document.getElementById('custom-options-list').classList.toggle('open');
         }
         function selectOption(value, text) {
             document.getElementById('inp-type').value = value;
             document.getElementById('selected-val-display').innerText = text;
-            
-            // Update active state
             document.querySelectorAll('.custom-option').forEach(el => el.classList.remove('selected'));
             event.target.classList.add('selected');
-            
             toggleCustomSelect();
         }
-        // ปิด Dropdown เมื่อคลิกที่อื่น
         window.onclick = function(event) {
             if (!event.target.matches('.custom-select-trigger') && !event.target.matches('.custom-select-trigger *')) {
                 document.getElementById('custom-options-list').classList.remove('open');
             }
         }
 
-        // --- Confirm Modal Logic ---
         function openConfirm(action) {
             confirmModal.classList.remove('hidden');
             const btnYes = document.getElementById('confirm-yes-btn');
-            
             if (action === 'clear') {
                 document.getElementById('confirm-title').innerText = "ล้างการ์ดทั้งหมด?";
                 document.getElementById('confirm-desc').innerText = "การ์ดที่คุณเพิ่มเองจะหายไปทั้งหมด";
@@ -343,17 +344,12 @@
                 btnYes.onclick = () => { doRestoreDeck(); closeConfirm(); };
             }
         }
-        function closeConfirm() {
-            confirmModal.classList.add('hidden');
-        }
+        function closeConfirm() { confirmModal.classList.add('hidden'); }
 
         function loadDeck() {
             const saved = localStorage.getItem('party_game_deck');
-            if (saved) {
-                try { masterDeck = JSON.parse(saved); } catch(e) { masterDeck = [...defaultDeckData]; }
-            } else {
-                masterDeck = [...defaultDeckData];
-            }
+            if (saved) { try { masterDeck = JSON.parse(saved); } catch(e) { masterDeck = [...defaultDeckData]; } }
+            else { masterDeck = [...defaultDeckData]; }
         }
         function saveDeck() { localStorage.setItem('party_game_deck', JSON.stringify(masterDeck)); }
 
@@ -381,22 +377,12 @@
             setTimeout(() => btn.innerHTML = originalText, 1000);
         }
 
-        function doClearDeck() {
-            masterDeck = [];
-            saveDeck();
-            document.getElementById('modal-total').innerText = 0;
-        }
-        
-        function doRestoreDeck() {
-            masterDeck = [...defaultDeckData];
-            saveDeck();
-            document.getElementById('modal-total').innerText = masterDeck.length;
-        }
+        function doClearDeck() { masterDeck = []; saveDeck(); document.getElementById('modal-total').innerText = 0; }
+        function doRestoreDeck() { masterDeck = [...defaultDeckData]; saveDeck(); document.getElementById('modal-total').innerText = masterDeck.length; }
 
         function applyAndClose() {
             if (masterDeck.length === 0) return alert("ไม่มีการ์ดเลย! เพิ่มก่อนสิ");
-            instantRestart();
-            toggleModal(false);
+            instantRestart(); toggleModal(false);
         }
 
         function updateStatus(mode, category = null) {
