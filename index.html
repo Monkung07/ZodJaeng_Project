@@ -3,45 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Party Game with Auto-Save</title>
+    <title>Party Game Premium UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
     <style>
-        /* --- Styles เดิม --- */
+        /* --- Core Styles --- */
         html, body {
             background-color: #0f5132;
             background-image: radial-gradient(circle at center, #146c43 0%, #0a3622 100%);
-            overflow: hidden;
-            user-select: none;
-            font-family: 'Sarabun', sans-serif;
-            touch-action: none; -ms-touch-action: none; overscroll-behavior: none; -webkit-touch-callout: none;
-            height: 100vh; width: 100vw; position: fixed;
+            overflow: hidden; user-select: none; font-family: 'Sarabun', sans-serif;
+            touch-action: none; height: 100vh; width: 100vw; position: fixed;
         }
 
         .scene {
-            perspective: 1200px;
-            width: 100%; height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            padding-top: 40px;
+            perspective: 1200px; width: 100%; height: 100vh;
+            display: flex; align-items: center; justify-content: center; padding-top: 40px;
         }
 
         .deck-container { position: relative; width: 220px; height: 330px; }
 
         .card {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 1rem; transform-style: preserve-3d;
-            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            -webkit-tap-highlight-color: transparent;
+            position: absolute; width: 100%; height: 100%; border-radius: 1rem;
+            transform-style: preserve-3d; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); -webkit-tap-highlight-color: transparent;
         }
 
         .card-face {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 1rem; backface-visibility: hidden;
-            display: flex; align-items: center; justify-content: center;
-            text-align: center; padding: 20px; box-sizing: border-box;
-            border: 1px solid rgba(0,0,0,0.1);
+            position: absolute; width: 100%; height: 100%; border-radius: 1rem;
+            backface-visibility: hidden; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.1);
         }
 
         .card-back {
@@ -78,9 +70,9 @@
         }
         .side-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
         .side-btn:active { transform: scale(0.95); }
+        .side-btn:disabled { opacity: 0.5; cursor: not-allowed; background: rgba(0,0,0,0.2); }
         .side-btn span { font-size: 24px; }
         .side-btn p { font-size: 10px; margin-top: 4px; font-weight: bold; }
-        .side-btn:disabled { opacity: 0.5; cursor: not-allowed; background: rgba(0,0,0,0.2); }
 
         @media (min-width: 768px) {
             .deck-container { width: 300px; height: 450px; }
@@ -89,21 +81,42 @@
             .side-btn p { font-size: 12px; }
         }
 
-        /* Modal Styles */
-        #custom-modal { transition: opacity 0.3s ease; }
-        .modal-content {
-            background: rgba(15, 65, 40, 0.95); backdrop-filter: blur(12px);
+        /* --- New UI Components Styles --- */
+        .glass-panel {
+            background: rgba(15, 65, 40, 0.95); backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        input, select {
-            background: rgba(30, 90, 60, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); color: white;
+        
+        input {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;
         }
-        input:focus, select:focus {
-            outline: none; border-color: #facc15; box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+        input:focus { outline: none; border-color: #facc15; box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3); }
+
+        /* Custom Dropdown Styling */
+        .custom-select-container { position: relative; width: 100%; }
+        .custom-select-trigger {
+            width: 100%; padding: 12px; border-radius: 0.75rem;
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white; text-align: left; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        input::placeholder { color: rgba(255, 255, 255, 0.5); }
-        select option { background-color: #14532d; color: white; }
+        .custom-select-trigger:focus { outline: none; border-color: #facc15; }
+        .custom-options {
+            position: absolute; top: 110%; left: 0; right: 0;
+            background: #1a4d35; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.75rem; overflow: hidden; z-index: 50;
+            display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .custom-options.open { display: block; animation: fadeIn 0.2s ease; }
+        .custom-option {
+            padding: 12px; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; gap: 8px; color: white;
+        }
+        .custom-option:hover { background: rgba(255,255,255,0.1); }
+        .custom-option.selected { background: rgba(250, 204, 21, 0.2); color: #facc15; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -135,9 +148,11 @@
     </div>
 
     <div id="custom-modal" class="fixed inset-0 z-[100] hidden bg-black/80 flex items-center justify-center p-4">
-        <div class="modal-content w-full max-w-md p-6 rounded-2xl shadow-2xl text-white">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl text-white">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-yellow-400 drop-shadow-sm">⚡ เพิ่มการ์ดเอง</h2>
+                <h2 class="text-2xl font-bold text-yellow-400 drop-shadow-sm flex items-center gap-2">
+                    <span class="material-icons-round">edit_note</span> เพิ่มการ์ดเอง
+                </h2>
                 <button onclick="toggleModal(false)" class="text-green-200/70 hover:text-white transition">
                     <span class="material-icons-round">close</span>
                 </button>
@@ -152,13 +167,21 @@
                 <div class="flex gap-4">
                     <div class="w-2/3">
                         <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">ประเภท</label>
-                        <select id="inp-type" class="w-full p-3 rounded-xl mt-2 appearance-none">
-                            <option value="drink">🍺 ดื่ม (Drink)</option>
-                            <option value="hard">🔥 โหด (Hard)</option>
-                            <option value="action">💃 กิจกรรม (Action)</option>
-                            <option value="lucky">🍀 รอดตัว (Lucky)</option>
-                        </select>
-                    </div>
+                        
+                        <div class="custom-select-container mt-2">
+                            <div class="custom-select-trigger" onclick="toggleCustomSelect()">
+                                <span id="selected-val-display" class="flex items-center gap-2">🍺 ดื่ม (Drink)</span>
+                                <span class="material-icons-round text-sm">expand_more</span>
+                            </div>
+                            <div class="custom-options" id="custom-options-list">
+                                <div class="custom-option selected" onclick="selectOption('drink', '🍺 ดื่ม (Drink)')">🍺 ดื่ม (Drink)</div>
+                                <div class="custom-option" onclick="selectOption('hard', '🔥 โหด (Hard)')">🔥 โหด (Hard)</div>
+                                <div class="custom-option" onclick="selectOption('action', '💃 กิจกรรม (Action)')">💃 กิจกรรม (Action)</div>
+                                <div class="custom-option" onclick="selectOption('lucky', '🍀 รอดตัว (Lucky)')">🍀 รอดตัว (Lucky)</div>
+                            </div>
+                            <input type="hidden" id="inp-type" value="drink">
+                        </div>
+                        </div>
                     <div class="w-1/3">
                         <label class="text-xs text-green-200/70 uppercase tracking-wider font-bold">จำนวนใบ</label>
                         <input type="number" id="inp-count" value="1" min="1" max="50" class="w-full p-3 rounded-xl mt-2 text-center">
@@ -178,16 +201,30 @@
                 </div>
                 
                 <div class="flex gap-3">
-                    <button onclick="restoreDefaultDeck()" class="flex-1 py-3 border border-white/20 text-gray-300 rounded-xl hover:bg-white/10 text-sm font-bold transition">
+                    <button onclick="openConfirm('restore')" class="flex-1 py-3 border border-white/20 text-gray-300 rounded-xl hover:bg-white/10 text-sm font-bold transition">
                         คืนค่าเริ่มต้น
                     </button>
-                    <button onclick="clearDeckData()" class="flex-1 py-3 border border-red-500/40 text-red-300 rounded-xl hover:bg-red-500/20 text-sm font-bold transition">
+                    <button onclick="openConfirm('clear')" class="flex-1 py-3 border border-red-500/40 text-red-300 rounded-xl hover:bg-red-500/20 text-sm font-bold transition">
                         ล้างทั้งหมด
                     </button>
                 </div>
                 <button onclick="applyAndClose()" class="w-full py-3 bg-green-500 hover:bg-green-400 text-white rounded-xl shadow-lg shadow-green-500/30 font-bold transition transform active:scale-95">
                     บันทึกและเริ่มเล่น
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-[110] hidden bg-black/80 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl text-center">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-icons-round text-3xl text-red-400">warning</span>
+            </div>
+            <h3 id="confirm-title" class="text-xl font-bold text-white mb-2">ยืนยันการลบ?</h3>
+            <p id="confirm-desc" class="text-white/60 text-sm mb-6">การกระทำนี้ไม่สามารถย้อนกลับได้</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">ยกเลิก</button>
+                <button id="confirm-yes-btn" class="flex-1 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold">ยืนยัน</button>
             </div>
         </div>
     </div>
@@ -233,7 +270,6 @@
             }
         };
 
-        // --- Default Data (Hardcoded) ---
         const defaultDeckData = [
             { text: "หมดแก้วเดี๋ยวนี้!", type: "hard" },
             { text: "คนซ้ายดื่ม 1", type: "drink" },
@@ -251,8 +287,7 @@
             { text: "พักดื่มน้ำ 1 แก้ว", type: "lucky" }
         ];
 
-        // --- Variables ---
-        let masterDeck = []; // โหลดจาก Save หรือ Default
+        let masterDeck = []; 
         let activeDeck = [];
         let currentDeckState = [];
 
@@ -269,28 +304,59 @@
         const countText = document.getElementById('card-count');
         const shuffleBtn = document.getElementById('btn-shuffle');
         const modal = document.getElementById('custom-modal');
+        const confirmModal = document.getElementById('confirm-modal');
         let isShuffling = false;
 
-        // --- Load / Save Logic ---
+        // --- Custom Dropdown Logic ---
+        function toggleCustomSelect() {
+            document.getElementById('custom-options-list').classList.toggle('open');
+        }
+        function selectOption(value, text) {
+            document.getElementById('inp-type').value = value;
+            document.getElementById('selected-val-display').innerText = text;
+            
+            // Update active state
+            document.querySelectorAll('.custom-option').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            toggleCustomSelect();
+        }
+        // ปิด Dropdown เมื่อคลิกที่อื่น
+        window.onclick = function(event) {
+            if (!event.target.matches('.custom-select-trigger') && !event.target.matches('.custom-select-trigger *')) {
+                document.getElementById('custom-options-list').classList.remove('open');
+            }
+        }
+
+        // --- Confirm Modal Logic ---
+        function openConfirm(action) {
+            confirmModal.classList.remove('hidden');
+            const btnYes = document.getElementById('confirm-yes-btn');
+            
+            if (action === 'clear') {
+                document.getElementById('confirm-title').innerText = "ล้างการ์ดทั้งหมด?";
+                document.getElementById('confirm-desc').innerText = "การ์ดที่คุณเพิ่มเองจะหายไปทั้งหมด";
+                btnYes.onclick = () => { doClearDeck(); closeConfirm(); };
+            } else if (action === 'restore') {
+                document.getElementById('confirm-title').innerText = "คืนค่าเริ่มต้น?";
+                document.getElementById('confirm-desc').innerText = "การ์ดปัจจุบันจะถูกแทนที่ด้วยชุดมาตรฐาน";
+                btnYes.onclick = () => { doRestoreDeck(); closeConfirm(); };
+            }
+        }
+        function closeConfirm() {
+            confirmModal.classList.add('hidden');
+        }
+
         function loadDeck() {
             const saved = localStorage.getItem('party_game_deck');
             if (saved) {
-                try {
-                    masterDeck = JSON.parse(saved);
-                } catch(e) {
-                    console.error("Save file corrupted, loading default.");
-                    masterDeck = [...defaultDeckData];
-                }
+                try { masterDeck = JSON.parse(saved); } catch(e) { masterDeck = [...defaultDeckData]; }
             } else {
                 masterDeck = [...defaultDeckData];
             }
         }
+        function saveDeck() { localStorage.setItem('party_game_deck', JSON.stringify(masterDeck)); }
 
-        function saveDeck() {
-            localStorage.setItem('party_game_deck', JSON.stringify(masterDeck));
-        }
-
-        // --- Modal Functions ---
         function toggleModal(show) {
             if (show) {
                 modal.classList.remove('hidden');
@@ -304,38 +370,27 @@
             const text = document.getElementById('inp-text').value.trim();
             const type = document.getElementById('inp-type').value;
             const count = parseInt(document.getElementById('inp-count').value);
-
             if (!text) return alert("ใส่ข้อความก่อนสิครับ!");
-
-            for(let i=0; i<count; i++) {
-                masterDeck.push({ text, type });
-            }
-            saveDeck(); // Save ทันที
-
+            for(let i=0; i<count; i++) { masterDeck.push({ text, type }); }
+            saveDeck();
             document.getElementById('inp-text').value = '';
             document.getElementById('modal-total').innerText = masterDeck.length;
-            
             const btn = document.querySelector('button[onclick="addCustomCard()"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = "<span class='material-icons-round'>check</span> เรียบร้อย!";
             setTimeout(() => btn.innerHTML = originalText, 1000);
         }
 
-        function clearDeckData() {
-            if(confirm("จะลบการ์ดทั้งหมดจริงหรอ?")) {
-                masterDeck = [];
-                saveDeck(); // Save ทันที
-                document.getElementById('modal-total').innerText = 0;
-            }
+        function doClearDeck() {
+            masterDeck = [];
+            saveDeck();
+            document.getElementById('modal-total').innerText = 0;
         }
         
-        function restoreDefaultDeck() {
-            if(confirm("จะคืนค่าเป็นการ์ดเริ่มต้นไหม? (การ์ดที่คุณแต่งเองจะหายหมด)")) {
-                masterDeck = [...defaultDeckData];
-                saveDeck();
-                document.getElementById('modal-total').innerText = masterDeck.length;
-                alert("คืนค่าเรียบร้อย!");
-            }
+        function doRestoreDeck() {
+            masterDeck = [...defaultDeckData];
+            saveDeck();
+            document.getElementById('modal-total').innerText = masterDeck.length;
         }
 
         function applyAndClose() {
@@ -344,22 +399,17 @@
             toggleModal(false);
         }
 
-        // --- Game Logic ---
         function updateStatus(mode, category = null) {
             let text = "";
             statusText.className = "text-3xl md:text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight"; 
             void statusText.offsetWidth;
             statusText.classList.add('text-pop');
-
             if (mode === 'waiting') {
                 if (currentDeckState.length === 0) {
-                    text = "หมดกองแล้ว!";
-                    statusText.classList.add('text-gray-300');
-                    shuffleBtn.disabled = true;
+                    text = "หมดกองแล้ว!"; statusText.classList.add('text-gray-300'); shuffleBtn.disabled = true;
                 } else {
                     text = waitingTexts[Math.floor(Math.random() * waitingTexts.length)];
-                    statusText.classList.add('text-yellow-400');
-                    shuffleBtn.disabled = false;
+                    statusText.classList.add('text-yellow-400'); shuffleBtn.disabled = false;
                 }
             } else if (mode === 'reaction' && category) {
                 const options = reactionMap[category] || reactionMap['drink'];
@@ -374,13 +424,9 @@
 
         function instantRestart() {
             if (isShuffling) return;
-            SoundFX.init();
-            SoundFX.playSlide();
-            
-            // ใช้ masterDeck ที่โหลดมาล่าสุด
+            SoundFX.init(); SoundFX.playSlide();
             activeDeck = masterDeck.map((c, i) => ({ ...c, id: i }));
             currentDeckState = [...activeDeck];
-            
             deployRealDeck();
             updateStatus('waiting');
         }
@@ -391,18 +437,13 @@
             SoundFX.init();
             deckContainer.innerHTML = ''; 
             updateStatus('waiting'); 
-
             const STUNT_COUNT = Math.min(8, currentDeckState.length);
             const stuntCards = [];
-            
             for(let i=0; i<STUNT_COUNT; i++) {
-                const c = document.createElement('div');
-                c.className = 'card';
+                const c = document.createElement('div'); c.className = 'card';
                 c.innerHTML = `<div class="card-face card-back"></div>`;
-                deckContainer.appendChild(c);
-                stuntCards.push(c);
+                deckContainer.appendChild(c); stuntCards.push(c);
             }
-
             stuntCards.forEach((c, i) => {
                 setTimeout(() => {
                     SoundFX.playSnap();
@@ -411,7 +452,6 @@
                     c.style.transform = `translate(${spread}px, -110px) rotate(${(i - STUNT_COUNT/2)*5}deg)`;
                 }, i * 30);
             });
-
             const fallTime = (STUNT_COUNT * 30) + 500;
             stuntCards.forEach((c, i) => {
                 setTimeout(() => {
@@ -419,17 +459,12 @@
                     c.style.transform = `translate(0,0) rotate(${Math.random()*2-1}deg)`;
                 }, fallTime + (i * 50));
             });
-
-            setTimeout(() => {
-                deployRealDeck();
-                isShuffling = false;
-            }, fallTime + (STUNT_COUNT * 50) + 800);
+            setTimeout(() => { deployRealDeck(); isShuffling = false; }, fallTime + (STUNT_COUNT * 50) + 800);
         }
 
         function deployRealDeck() {
             deckContainer.innerHTML = '';
             const shuffled = [...currentDeckState].sort(() => Math.random() - 0.5);
-            
             shuffled.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -437,7 +472,6 @@
                 card.dataset.id = item.id;
                 card.dataset.type = item.type;
                 card.style.transform = `translate(0,0) rotate(${Math.random()*2-1}deg)`;
-                
                 card.innerHTML = `
                     <div class="card-face card-back"></div>
                     <div class="card-face card-front">
@@ -456,16 +490,13 @@
         function handleCardClick(card) {
             if (isShuffling || card.classList.contains('discarded')) return;
             SoundFX.init();
-
             if (card.classList.contains('active')) {
                 SoundFX.playSlide();
                 card.classList.remove('active');
                 card.classList.add('discarded');
-                
                 const id = parseInt(card.dataset.id);
                 currentDeckState = currentDeckState.filter(c => c.id !== id);
                 countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
-
                 setTimeout(() => updateStatus('waiting'), 300);
                 setTimeout(() => card.remove(), 600);
             } else {
@@ -481,8 +512,8 @@
             }
         }
 
-        // --- Init ---
-        loadDeck(); // โหลดเซฟก่อน
+        // Init
+        loadDeck();
         setTimeout(() => instantRestart(), 100);
     </script>
 </body>
