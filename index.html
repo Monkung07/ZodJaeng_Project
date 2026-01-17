@@ -1,359 +1,78 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Party Game">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/931/931949.png">
-
-    <title>Zod *! Jaeng Party</title>
+    <title>Zod Party Game</title>
+    <link rel="stylesheet" href="index.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-
     <style id="dynamic-card-style"></style>
 
-    <style>
-        /* --- CSS Variables --- */
-        :root {
-            --bg-color: #111111;
-            --dot-color: rgba(255, 255, 255, 0.15);
-            --accent: #FACC15;
-            /* สีเหลือง Zod */
-            --text-on-accent: #000000;
-            --glass-bg: rgba(30, 30, 30, 0.95);
-        }
-
-        /* --- พื้นหลังลายจุด (Polka Dot) แบบแก้ไขแล้ว --- */
-        html,
-        body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            /* ระยะห่างระหว่างจุด */
-            background-position: 0 0;
-
-            overflow: hidden;
-            user-select: none;
-            font-family: 'Sarabun', sans-serif;
-            touch-action: none;
-            -ms-touch-action: none;
-            overscroll-behavior: none;
-            -webkit-touch-callout: none;
-            height: 100vh;
-            width: 100vw;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            transition: background 0.3s ease;
-        }
-
-        .scene {
-            perspective: 1200px;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .deck-container {
-            position: relative;
-            width: 220px;
-            height: 330px;
-        }
-
-        .card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 1rem;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 1rem;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* --- รูปหลังการ์ด --- */
-        .card-back {
-            background-color: #000;
-            /* สีพื้นหลังดำ */
-            background-image: url('cover.png');
-            /* รูปปก */
-            background-size: cover;
-            background-position: center;
-            border: 6px solid white;
-            /* ขอบขาว */
-            transition: background 0.5s ease;
-        }
-
-        .card-back::after {
-            display: none;
-        }
-
-        /* ซ่อนดอกจิก */
-
-        .card-front {
-            background: white;
-            transform: rotateY(180deg);
-            color: #1a1a1a;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border: 4px solid #e5e7eb;
-        }
-
-        .card.active {
-            z-index: 3000 !important;
-            transform: translate(0, -40px) scale(1.25) rotateY(180deg) !important;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .card.discarded {
-            transform: translate(-150%, 0) rotate(-45deg) !important;
-            opacity: 0;
-            transition: all 0.4s ease-in;
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .text-pop {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        /* ปุ่มด้านขวา */
-        .side-btn {
-            background: rgba(50, 50, 50, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 9999px;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 70px;
-            height: 70px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            touch-action: manipulation;
-        }
-
-        .side-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.1);
-            border-color: var(--accent);
-        }
-
-        .side-btn:active {
-            transform: scale(0.95);
-        }
-
-        .side-btn span {
-            font-size: 24px;
-            color: var(--accent);
-        }
-
-        .side-btn p {
-            font-size: 10px;
-            margin-top: 4px;
-            font-weight: bold;
-            color: white;
-        }
-
-        @media (min-width: 768px) {
-            .deck-container {
-                width: 300px;
-                height: 450px;
-            }
-
-            .side-btn {
-                width: 90px;
-                height: 90px;
-            }
-
-            .side-btn span {
-                font-size: 32px;
-            }
-
-            .side-btn p {
-                font-size: 12px;
-            }
-        }
-
-        /* Modal UI */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        input {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent);
-        }
-
-        .custom-select-trigger {
-            width: 100%;
-            padding: 12px;
-            border-radius: 0.75rem;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .custom-options {
-            position: absolute;
-            top: 110%;
-            left: 0;
-            right: 0;
-            background: #222;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            overflow: hidden;
-            z-index: 50;
-            display: none;
-        }
-
-        .custom-options.open {
-            display: block;
-        }
-
-        .custom-option {
-            padding: 12px;
-            cursor: pointer;
-            color: white;
-            display: flex;
-            gap: 8px;
-        }
-
-        .custom-option.selected {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--accent);
-        }
-
-        /* Theme Buttons */
-        .theme-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #000;
-        }
-
-        .theme-btn-inner {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-        }
-
-        .theme-btn.active {
-            border-color: white;
-            transform: scale(1.15);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
-        /* File Upload */
-        .file-upload-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px;
-            border-radius: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed rgba(255, 255, 255, 0.3);
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-    </style>
 </head>
-
 <body>
 
-    <div class="fixed top-12 w-full text-center z-40 pointer-events-none px-12">
-        <h1 id="status-text"
-            class="text-3xl md:text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-pop leading-tight"
-            style="color: var(--accent);">
-            พร้อมแล้ว... จั่วเลย!
-        </h1>
-        <p id="card-count" class="text-white/60 text-sm mt-2 font-bold"></p>
+    <div id="landing-screen">
+        <button onclick="enterGameMenu()" class="zod-play-btn">PLAY</button>
     </div>
 
-    <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col items-center">
-        <button onclick="toggleModal(true)" class="side-btn">
-            <span class="material-icons-round">edit</span>
-            <p>ตั้งค่า</p>
-        </button>
-        <button id="btn-shuffle" onclick="startShuffleSequence()" class="side-btn">
-            <span class="material-icons-round">shuffle</span>
-            <p>สับไพ่</p>
-        </button>
-        <button onclick="instantRestart()" class="side-btn">
-            <span class="material-icons-round">replay</span>
-            <p>เริ่มใหม่</p>
-        </button>
+    <div id="menu-screen">
+        <h1 class="menu-title">เลือกโหมด</h1>
+        
+        <div class="menu-buttons-wrapper">
+            <div class="game-card-btn btn-zod" onclick="selectGame('party')">
+                <span class="game-card-icon material-icons-round">local_bar</span>
+                <div class="game-card-info">
+                    <h3>Zod Party</h3>
+                    <p>100+ Cards</p>
+                </div>
+            </div>
+
+            <div class="game-card-btn btn-standard" onclick="selectGame('standard')">
+                 <span class="game-card-icon material-icons-round">style</span>
+                <div class="game-card-info">
+                    <h3>Classic 52</h3>
+                    <p>Standard Deck</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="scene">
-        <div class="deck-container" id="deck"></div>
+    <div id="game-screen">
+        <div class="fixed top-12 left-6 z-50">
+            <button onclick="backToMenu()" class="side-btn" style="width: 50px; height: 50px;">
+                <span class="material-icons-round" style="font-size: 24px;">arrow_back</span>
+            </button>
+        </div>
+
+        <div class="fixed top-12 w-full text-center z-40 pointer-events-none px-12">
+            <h1 id="status-text" class="text-3xl md:text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-pop leading-tight" style="color: var(--accent);">
+                พร้อมแล้ว...
+            </h1>
+            <p id="card-count" class="text-white/60 text-sm mt-2 font-bold"></p>
+        </div>
+
+        <div class="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col items-center">
+            <button onclick="toggleModal(true)" class="side-btn">
+                <span class="material-icons-round">edit</span>
+                <p>ตั้งค่า</p>
+            </button>
+            <button id="btn-shuffle" onclick="startShuffleSequence()" class="side-btn">
+                <span class="material-icons-round">shuffle</span>
+                <p>สับไพ่</p>
+            </button>
+            <button onclick="instantRestart()" class="side-btn">
+                <span class="material-icons-round">replay</span>
+                <p>เริ่มใหม่</p>
+            </button>
+        </div>
+
+        <div class="scene">
+            <div class="deck-container" id="deck"></div>
+        </div>
     </div>
 
     <div id="custom-modal" class="fixed inset-0 z-[100] hidden bg-black/80 flex items-center justify-center p-4">
@@ -368,18 +87,15 @@
             </div>
 
             <div class="space-y-6">
-
                 <div>
-                    <label
-                        class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เปลี่ยนรูปหลังไพ่</label>
+                    <label class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เปลี่ยนรูปหลังไพ่</label>
                     <div class="flex gap-2">
                         <label class="file-upload-label flex-1">
                             <span class="material-icons-round" style="color: var(--accent);">add_photo_alternate</span>
                             <span id="upload-text">อัปโหลดรูปใหม่</span>
                             <input type="file" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
                         </label>
-                        <button onclick="resetCardBack()"
-                            class="px-4 rounded-xl border border-white/20 text-white/50 hover:text-white hover:bg-white/10">
+                        <button onclick="resetCardBack()" class="px-4 rounded-xl border border-white/20 text-white/50 hover:text-white hover:bg-white/10">
                             <span class="material-icons-round">refresh</span>
                         </button>
                     </div>
@@ -388,74 +104,49 @@
                 <hr class="border-white/10">
 
                 <div>
-                    <label class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เลือกสีธีม
-                        (Accent)</label>
+                    <label class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เลือกสีธีม (Accent)</label>
                     <div class="flex gap-3 justify-center bg-black/40 p-3 rounded-xl border border-white/10">
-                        <div class="theme-btn" onclick="setTheme('zod')" id="theme-zod">
-                            <div class="theme-btn-inner" style="background: #FACC15;"></div>
-                        </div>
-                        <div class="theme-btn" onclick="setTheme('red')" id="theme-red">
-                            <div class="theme-btn-inner" style="background: #EF4444;"></div>
-                        </div>
-                        <div class="theme-btn" onclick="setTheme('blue')" id="theme-blue">
-                            <div class="theme-btn-inner" style="background: #3B82F6;"></div>
-                        </div>
-                        <div class="theme-btn" onclick="setTheme('purple')" id="theme-purple">
-                            <div class="theme-btn-inner" style="background: #8B5CF6;"></div>
-                        </div>
+                        <div class="theme-btn" onclick="setTheme('zod')" id="theme-zod"><div class="theme-btn-inner" style="background: #FACC15;"></div></div>
+                        <div class="theme-btn" onclick="setTheme('red')" id="theme-red"><div class="theme-btn-inner" style="background: #EF4444;"></div></div>
+                        <div class="theme-btn" onclick="setTheme('blue')" id="theme-blue"><div class="theme-btn-inner" style="background: #3B82F6;"></div></div>
+                        <div class="theme-btn" onclick="setTheme('purple')" id="theme-purple"><div class="theme-btn-inner" style="background: #8B5CF6;"></div></div>
                     </div>
                 </div>
 
                 <hr class="border-white/10">
 
-                <div>
-                    <label
-                        class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เพิ่มการ์ดใหม่</label>
+                <div id="party-options">
+                    <label class="text-xs text-white/60 uppercase tracking-wider font-bold mb-2 block">เพิ่มการ์ดใหม่</label>
                     <div class="space-y-3">
-                        <input type="text" id="inp-text" placeholder="เช่น คนซ้ายโดน 2 แก้ว..."
-                            class="w-full p-3 rounded-xl">
+                        <input type="text" id="inp-text" placeholder="เช่น คนซ้ายโดน 2 แก้ว..." class="w-full p-3 rounded-xl">
                         <div class="flex gap-3">
                             <div class="w-2/3 relative">
                                 <div class="custom-select-trigger" onclick="toggleCustomSelect()">
-                                    <span id="selected-val-display" class="flex items-center gap-2">🍺 ดื่ม
-                                        (Drink)</span>
+                                    <span id="selected-val-display" class="flex items-center gap-2">🍺 ดื่ม (Drink)</span>
                                     <span class="material-icons-round text-sm">expand_more</span>
                                 </div>
                                 <div class="custom-options" id="custom-options-list">
-                                    <div class="custom-option selected"
-                                        onclick="selectOption('drink', '🍺 ดื่ม (Drink)')">🍺 ดื่ม (Drink)</div>
-                                    <div class="custom-option" onclick="selectOption('hard', '🔥 โหด (Hard)')">🔥 โหด
-                                        (Hard)</div>
-                                    <div class="custom-option" onclick="selectOption('action', '💃 กิจกรรม (Action)')">
-                                        💃 กิจกรรม (Action)</div>
-                                    <div class="custom-option" onclick="selectOption('lucky', '🍀 รอดตัว (Lucky)')">🍀
-                                        รอดตัว (Lucky)</div>
+                                    <div class="custom-option selected" onclick="selectOption('drink', '🍺 ดื่ม (Drink)')">🍺 ดื่ม (Drink)</div>
+                                    <div class="custom-option" onclick="selectOption('hard', '🔥 โหด (Hard)')">🔥 โหด (Hard)</div>
+                                    <div class="custom-option" onclick="selectOption('action', '💃 กิจกรรม (Action)')">💃 กิจกรรม (Action)</div>
+                                    <div class="custom-option" onclick="selectOption('lucky', '🍀 รอดตัว (Lucky)')">🍀 รอดตัว (Lucky)</div>
                                 </div>
                                 <input type="hidden" id="inp-type" value="drink">
                             </div>
-                            <input type="number" id="inp-count" value="1" min="1" max="50"
-                                class="w-1/3 p-3 rounded-xl text-center">
+                            <input type="number" id="inp-count" value="1" min="1" max="50" class="w-1/3 p-3 rounded-xl text-center">
                         </div>
-                        <button onclick="addCustomCard()"
-                            class="w-full font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95"
-                            style="background-color: var(--accent); color: var(--text-on-accent);">
+                        <button onclick="addCustomCard()" class="w-full font-bold py-3 rounded-xl shadow-lg transition transform active:scale-95" style="background-color: var(--accent); color: var(--text-on-accent);">
                             + เพิ่มเข้ากอง
                         </button>
                     </div>
-                </div>
-
-                <hr class="border-white/10">
-
-                <div class="flex flex-col gap-3">
-                    <div class="flex justify-between text-sm text-white/60 px-1">
-                        <span>เพิ่มเอง: <strong id="custom-count-display" style="color: var(--accent);">0</strong>
-                            ใบ</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="openConfirm('clearCustom')"
-                            class="flex-1 py-3 border border-red-500/40 text-red-300 rounded-xl hover:bg-red-500/20 text-sm font-bold">ล้างที่เพิ่ม</button>
-                        <button onclick="applyAndClose()"
-                            class="flex-[2] py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-lg font-bold">เริ่มเล่น</button>
+                    
+                    <div class="flex flex-col gap-3 mt-4">
+                        <div class="flex justify-between text-sm text-white/60 px-1">
+                            <span>เพิ่มเอง: <strong id="custom-count-display" style="color: var(--accent);">0</strong> ใบ</span>
+                        </div>
+                        <div class="flex gap-3">
+                             <button onclick="openConfirm('clearCustom')" class="flex-1 py-3 border border-red-500/40 text-red-300 rounded-xl hover:bg-red-500/20 text-sm font-bold">ล้างที่เพิ่ม</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -467,342 +158,11 @@
             <h3 id="confirm-title" class="text-xl font-bold text-white mb-2">ยืนยัน?</h3>
             <p id="confirm-desc" class="text-white/60 text-sm mb-6">...</p>
             <div class="flex gap-3">
-                <button onclick="closeConfirm()"
-                    class="flex-1 py-2 rounded-lg border border-white/20 text-white">ยกเลิก</button>
-                <button id="confirm-yes-btn"
-                    class="flex-1 py-2 rounded-lg bg-red-500 text-white font-bold">ยืนยัน</button>
+                <button onclick="closeConfirm()" class="flex-1 py-2 rounded-lg border border-white/20 text-white">ยกเลิก</button>
+                <button id="confirm-yes-btn" class="flex-1 py-2 rounded-lg bg-red-500 text-white font-bold">ยืนยัน</button>
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-        document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
-
-        // --- Sound System ---
-        const SoundFX = {
-            ctx: null, buffer: null,
-            init: function () {
-                if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-                if (!this.buffer) {
-                    const duration = 0.1; const sampleRate = this.ctx.sampleRate;
-                    const buffer = this.ctx.createBuffer(1, sampleRate * duration, sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let i = 0; i < data.length; i++) { data[i] = (Math.random() * 2 - 1) * 0.1; }
-                    this.buffer = buffer;
-                }
-            },
-            playSnap: function () { this.playNoise(800); },
-            playSlide: function () { this.playOsc(150, 'triangle', 0.2); },
-            playTone: function (freq) { this.playOsc(freq, 'sine', 0.3); },
-            playNoise: function (freq) {
-                if (!this.ctx || !this.buffer) return;
-                const src = this.ctx.createBufferSource(); src.buffer = this.buffer;
-                const f = this.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = freq;
-                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.8, this.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
-                src.connect(f); f.connect(g); g.connect(this.ctx.destination);
-                src.start(); src.stop(this.ctx.currentTime + 0.1);
-            },
-            playOsc: function (freq, type, dur) {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator(); osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                const g = this.ctx.createGain(); g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-                osc.connect(g); g.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + dur);
-            }
-        };
-
-        // --- Themes ---
-        const themes = {
-            zod: { '--accent': '#FACC15', '--text-on-accent': '#000000' },
-            red: { '--accent': '#EF4444', '--text-on-accent': '#FFFFFF' },
-            blue: { '--accent': '#3B82F6', '--text-on-accent': '#FFFFFF' },
-            purple: { '--accent': '#8B5CF6', '--text-on-accent': '#FFFFFF' }
-        };
-
-        function setTheme(themeName) {
-            const theme = themes[themeName] || themes.zod;
-            const root = document.documentElement;
-            for (const [key, value] of Object.entries(theme)) { root.style.setProperty(key, value); }
-            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`theme-${themeName}`)?.classList.add('active');
-            appData.currentTheme = themeName;
-            saveData();
-        }
-
-        // --- Data ---
-        const defaultDeckData = [
-            { text: "คนเปิดการ์ดโดน", type: "drink" },
-            { text: "คนซ้ายโดน", type: "drink" },
-            { text: "คนขวาโดน", type: "drink" },
-            { text: "คนซ้ายและขวาโดน", type: "drink" },
-            { text: "คนเปิดการ์ดโดน", type: "drink" },
-            { text: "คนซ้ายโดน", type: "drink" },
-            { text: "คนขวาโดน", type: "drink" },
-            { text: "คนซ้ายและขวาโดน", type: "drink" },
-
-            { text: "ใครแบตมือถือเหลือน้อยสุด โดน", type: "drink" },
-            { text: "ใครแบตมือถือเหลือเยอะสุด โดน", type: "drink" },
-            { text: "คนใส่แว่นโดน", type: "drink" },
-            { text: "คนไม่ใส่แว่นโดน", type: "drink" },
-            { text: "คนใส่เสื้อสีดำโดน", type: "drink" },
-            { text: "ใครมาสายวันนี้ โดน 1 แก้ว", type: "drink" },
-            { text: "ใครใช้ iPhone โดน", type: "drink" },
-            { text: "วันเกิดใครใกล้ที่สุดโดน", type: "drink" },
-            { text: "คนโสดโดน 1 แก้ว", type: "drink" },
-            { text: "ใครหน้าตาดีสุดโดน", type: "drink" },
-            { text: "คนอายุมากที่สุดโดน", type: "drink" },
-            { text: "คนอายุน้อยที่สุดโดน", type: "drink" },
-            { text: "ใครพกพาวเวอร์แบงค์มา โดน", type: "drink" },
-            { text: "คนสูงที่สุดโดน", type: "drink" },
-            { text: "คนเตี้ยที่สุดโดน", type: "drink" },
-            { text: "ผู้ชายโดน", type: "drink" },
-            { text: "บอกชื่อจริง-นามสกุล คนตรงข้าม ถ้าผิดโดน", type: "action" },
-            { text: "มินิเกม ผลัดกันนับเลข 1-25 นับได้คนละ 1-3 เลข ใครนับเลข 25 โดน", type: "action" },
-            { text: "มินิเกม บอกชื่อจังหวัดลงท้าย 'บุรี' ห้ามซ้ำ", type: "action" },
-            { text: "มินิเกม บอกชื่อผลไม้สีแดง ห้ามซ้ำ", type: "action" },
-            { text: "มินิเกม บอกยี่ห้อรถ ห้ามซ้ำ (ใครนึกไม่ออกโดน)", type: "action" },
-            { text: "เป่ายิ้งฉุบคนขวา แพ้โดน", type: "action" },
-            { text: "เป่ายิ้งฉุบคนซ้าย แพ้โดน", type: "action" },
-            { text: "ทายหัวก้อยกับคนทางขวา แพ้โดน", type: "action" },
-            { text: "ให้คนขวาดีดหน้าผาก 1 ที", type: "action" },
-            { text: "มินิเกม ให้พูดคำในภาษาใดก็ได้ 1 คำ ถ้ามีคนในวงรู้ความหมาย โดน", type: "action" },
-            { text: "ทำเสียงสัตว์อะไรก็ได้ ให้เพื่อนทางซ้ายทาย ทายผิดโดนคู่", type: "action" },
-            { text: "ลงสตอรี่ตามคนในไอจีแบบสุ่ม", type: "action" },
-            { text: "อมน้ำแข็ง 1 ก้อน", type: "action" },
-            { text: "พูดเสียงชิปมังค์จนกว่าจะถึงเทิร์นถัดไป", type: "action" },
-            { text: "ทายสีที่คนตรงข้ามชอบ ทายผิดโดน", type: "action" },
-            { text: "ทุกคนยืนขึ้น ยืนคนสุดท้ายโดน", type: "action" },
-            { text: "แข่งกับคนด้านขวา พูดลากเสียงให้ยาวที่สุด คนแพ้โดน", type: "action" },
-            { text: "ท้าแข่งงัดข้อกับ 1 คนในวง คนแพ้โดน", type: "action" },
-            { text: "เล่าความทรงจำที่แย่ที่สุด", type: "action" },
-            { text: "สิ่งที่ไมได้ไปต่อในปี 2026", type: "action" },
-            { text: "สิ่งที่ได้ไปต่อในปี 2026", type: "action" },
-            { text: "เล่าว่า ตอนเจอคนทางซ้ายครั้งแรกรู้สึกยังไง", type: "action" },
-            { text: "ถ้าต้องสลับชีวิตกับเพื่อนคนหนึ่งในนี้ จะเลือกใคร?", type: "action" },
-            { text: "เลียนแบบเพื่อนคนหนึ่งในวง แล้วให้คนอื่นทายว่าเป็นใคร ถ้าไม่มีใครทายถูกโดน", type: "action" },
-            { text: "อ่านแชทแรกที่คุยกับเพื่อนทางขวา ให้ทุกคนฟัง(ไม่กล้าโดน)", type: "action" },
-            { text: "อัดสตอรี่อธิบายอย่างจริงจังว่า ทำไมนกพิราบถึงวางแผนยึดครองโลก(ไม่กล้าโดน)", type: "action" },
-            { text: "งับแขน 1 คนในวง (ไม่กล้าโดน)", type: "action" },
-            { text: "มินิเกม คำต้องเชื่อม", type: "action" },
-            { text: "สุ่มรูปในอัลบั้มเปิดให้ทุกคนดู", type: "action" },
-            { text: "เลือกเพื่อนกินเพียว 1 ฝา", type: "hard" },
-            { text: "กินเพียว 1 ฝา", type: "hard" },
-            { text: "ผสมอะไรก็ได้ให้คนซ้ายกิน", type: "hard" },
-            { text: "ผสมอะไรก็ได้ให้คนขวากิน", type: "hard" },
-            { text: "เปิดรูปเก่าสุดในอัลบั้ม (ไม่กล้าเปิดโดน)", type: "hard" },
-            { text: "ค้นประวัติ Google (ไม่กล้าโดน)", type: "hard" },
-            { text: "บอกเหตุผลทำไมตัวเองถึงไม่ควรมีแฟน", type: "hard" },
-            { text: "โพสต์รูปเท้าตัวเองลงสตอรี่พร้อมแคปชั่น Sexy?🫦(ไม่กล้าเปิดโดน)", type: "hard" },
-            { text: "ให้คนในวงดู DM ใน Instagram ของคุณเป็นเวลา 30 วินาที (ไม่กล้าเปิดโดน)", type: "hard" },
-            { text: "โชว์รูปตัวเองทีคิดว่า Sexy ที่สุด (ไม่กล้าเปิดโดน)", type: "hard" },
-            { text: "Free Turn! รอดตัวไป", type: "lucky" },
-            { text: "Free Turn! รอดตัวไป", type: "lucky" },
-            { text: "สั่งใครก็ได้โดน 1 แก้ว", type: "lucky" },
-            { text: "Free Turn! รอดตัวไป", type: "lucky" },
-            { text: "Free Turn! รอดตัวไป", type: "lucky" },
-            { text: "สั่งใครก็ได้โดน 1 แก้ว", type: "lucky" },
-            { text: "พักกินน้ำเปล่า", type: "lucky" }
-        ];
-
-        let appData = { customCards: [], currentTheme: 'zod', customCardBack: null };
-        let activeDeck = []; let currentDeckState = [];
-        let isShuffling = false;
-
-        const reactionMap = {
-            hard: ["เรียบร้อยครับจารย์!", "สู่ขิต...", "ลาก่อยยยยย", "ไม่ไหวอย่าฝืน"],
-            drink: ["คอแห้งพอดีเลย", "หวานเจี๊ยบบบ", "ชนแก้วครับผม", "เบาๆ กรุบกริบ"],
-            action: ["อย่าเขินดิวะ!", "เอาให้สุด!", "กล้าป่าววว?", "ขอตึงๆ นะ"],
-            lucky: ["ทำบุญด้วยอะไรมา?", "รอดเฉยยยย", "แต้มบุญสูงนะเรา", "งวดนี้หวยออกแน่"]
-        };
-        const waitingTexts = ["ตาใครเอ่ย?", "มือสั่นทำไม?", "ใบต่อไปโหดแน่", "หยิบสิ อย่าลีลา"];
-
-        const deckContainer = document.getElementById('deck');
-        const statusText = document.getElementById('status-text');
-        const countText = document.getElementById('card-count');
-        const modal = document.getElementById('custom-modal');
-        const confirmModal = document.getElementById('confirm-modal');
-
-        // --- Functions ---
-        function loadData() {
-            const saved = localStorage.getItem('party_game_data_zod');
-            if (saved) { try { appData = { ...appData, ...JSON.parse(saved) }; } catch (e) { resetData(); } }
-            setTheme(appData.currentTheme || 'zod');
-            applyCardBack(appData.customCardBack);
-            updateModalUI();
-        }
-        function saveData() { localStorage.setItem('party_game_data_zod', JSON.stringify(appData)); updateModalUI(); }
-        function resetData() { appData = { customCards: [], currentTheme: 'zod', customCardBack: null }; saveData(); }
-
-        function updateModalUI() {
-            document.getElementById('custom-count-display').innerText = appData.customCards.length;
-            document.getElementById('upload-text').innerText = appData.customCardBack ? "ใช้รูปภาพที่เลือกอยู่" : "อัปโหลดรูปใหม่";
-        }
-
-        function handleImageUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-            if (file.size > 2 * 1024 * 1024) return alert("ไฟล์ใหญ่ไป! ขอไม่เกิน 2MB");
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                appData.customCardBack = e.target.result;
-                applyCardBack(e.target.result);
-                saveData();
-            };
-            reader.readAsDataURL(file);
-        }
-        function resetCardBack() { appData.customCardBack = null; applyCardBack(null); saveData(); }
-        function applyCardBack(imgUrl) {
-            const style = document.getElementById('dynamic-card-style');
-            if (imgUrl) style.innerHTML = `.card-back { background-image: url(${imgUrl}) !important; background-size: cover !important; background-position: center !important; border: 6px solid white !important; } .card-back::after { display: none !important; }`;
-            else style.innerHTML = '';
-        }
-
-        function toggleModal(show) { modal.classList.toggle('hidden', !show); if (show) updateModalUI(); }
-        function openConfirm(action) {
-            confirmModal.classList.remove('hidden');
-            const btnYes = document.getElementById('confirm-yes-btn');
-            const title = document.getElementById('confirm-title');
-            const desc = document.getElementById('confirm-desc');
-
-            if (action === 'clearCustom') {
-                title.innerText = "ล้างการ์ดที่เพิ่ม?"; desc.innerText = "การ์ดที่คุณพิมพ์เพิ่มจะหายไป";
-                btnYes.onclick = () => { appData.customCards = []; saveData(); closeConfirm(); };
-            }
-        }
-        function closeConfirm() { confirmModal.classList.add('hidden'); }
-        function applyAndClose() { instantRestart(); toggleModal(false); }
-
-        function toggleCustomSelect() { document.getElementById('custom-options-list').classList.toggle('open'); }
-        function selectOption(value, text) {
-            document.getElementById('inp-type').value = value;
-            document.getElementById('selected-val-display').innerText = text;
-            document.querySelectorAll('.custom-option').forEach(el => el.classList.remove('selected'));
-            event.target.classList.add('selected');
-            toggleCustomSelect();
-        }
-        window.onclick = (e) => {
-            if (!e.target.matches('.custom-select-trigger') && !e.target.matches('.custom-select-trigger *')) {
-                document.getElementById('custom-options-list').classList.remove('open');
-            }
-        };
-
-        function addCustomCard() {
-            const text = document.getElementById('inp-text').value.trim();
-            const type = document.getElementById('inp-type').value;
-            const count = parseInt(document.getElementById('inp-count').value);
-            if (!text) return alert("ใส่ข้อความก่อนสิครับ!");
-            for (let i = 0; i < count; i++) appData.customCards.push({ text, type });
-            saveData();
-            document.getElementById('inp-text').value = '';
-            // Feedback
-            const btn = document.querySelector('button[onclick="addCustomCard()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "<span class='material-icons-round'>check</span> เรียบร้อย";
-            setTimeout(() => btn.innerHTML = originalText, 1000);
-        }
-
-        function updateStatus(mode, category = null) {
-            let text = "";
-            statusText.className = "text-3xl md:text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight text-pop";
-
-            if (mode === 'waiting') {
-                text = currentDeckState.length === 0 ? "หมดกองแล้ว!" : waitingTexts[Math.floor(Math.random() * waitingTexts.length)];
-                statusText.style.color = currentDeckState.length === 0 ? 'gray' : 'var(--accent)';
-                document.getElementById('btn-shuffle').disabled = currentDeckState.length === 0;
-            } else if (mode === 'reaction') {
-                const options = reactionMap[category] || reactionMap['drink'];
-                text = options[Math.floor(Math.random() * options.length)];
-                if (category === 'hard') statusText.style.color = '#EF4444';
-                else if (category === 'lucky') statusText.style.color = '#10B981';
-                else statusText.style.color = '#EC4899';
-            }
-            statusText.innerText = text;
-            countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
-        }
-
-        function instantRestart() {
-            if (isShuffling) return;
-            SoundFX.init(); SoundFX.playSlide();
-            activeDeck = [...defaultDeckData, ...appData.customCards].map((c, i) => ({ ...c, id: i }));
-            currentDeckState = [...activeDeck];
-            deployRealDeck();
-            updateStatus('waiting');
-        }
-
-        function startShuffleSequence() {
-            if (isShuffling || currentDeckState.length === 0) return;
-            isShuffling = true; SoundFX.init();
-            deckContainer.innerHTML = ''; updateStatus('waiting');
-            const STUNT_COUNT = Math.min(8, currentDeckState.length);
-            const stuntCards = [];
-
-            for (let i = 0; i < STUNT_COUNT; i++) {
-                const c = document.createElement('div'); c.className = 'card';
-                c.innerHTML = `<div class="card-face card-back"></div>`;
-                deckContainer.appendChild(c); stuntCards.push(c);
-            }
-
-            stuntCards.forEach((c, i) => {
-                setTimeout(() => {
-                    SoundFX.playSnap();
-                    c.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    c.style.transform = `translate(${(i - STUNT_COUNT / 2) * 25}px, -110px) rotate(${(i - STUNT_COUNT / 2) * 5}deg)`;
-                }, i * 30);
-
-                setTimeout(() => {
-                    c.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    c.style.transform = `translate(0,0) rotate(${Math.random() * 2 - 1}deg)`;
-                }, (STUNT_COUNT * 30) + 500 + (i * 50));
-            });
-
-            setTimeout(() => { deployRealDeck(); isShuffling = false; }, (STUNT_COUNT * 30) + 500 + (STUNT_COUNT * 50) + 800);
-        }
-
-        function deployRealDeck() {
-            deckContainer.innerHTML = '';
-            [...currentDeckState].sort(() => Math.random() - 0.5).forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'card'; card.style.zIndex = index + 1;
-                card.dataset.id = item.id; card.dataset.type = item.type;
-                card.style.transform = `translate(0,0) rotate(${Math.random() * 2 - 1}deg)`;
-                card.innerHTML = `<div class="card-face card-back"></div><div class="card-face card-front"><div class="flex flex-col items-center px-4"><span class="text-3xl mb-4">🍻</span><span>${item.text}</span></div></div>`;
-                card.onclick = () => handleCardClick(card);
-                deckContainer.appendChild(card);
-            });
-            countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
-        }
-
-        function handleCardClick(card) {
-            if (isShuffling || card.classList.contains('discarded')) return;
-            SoundFX.init();
-
-            if (card.classList.contains('active')) {
-                SoundFX.playSlide(); card.classList.remove('active'); card.classList.add('discarded');
-                currentDeckState = currentDeckState.filter(c => c.id !== parseInt(card.dataset.id));
-                countText.innerText = `เหลือ ${currentDeckState.length} ใบ`;
-                setTimeout(() => updateStatus('waiting'), 300); setTimeout(() => card.remove(), 600);
-            } else {
-                const next = card.nextElementSibling;
-                if (!next || next.classList.contains('discarded')) {
-                    card.classList.add('active');
-                    updateStatus('reaction', card.dataset.type);
-                    const t = card.dataset.type;
-                    if (t === 'hard') SoundFX.playTone(100); // Sawtooth approx
-                    else if (t === 'lucky') SoundFX.playTone(600);
-                    else SoundFX.playTone(400);
-                }
-            }
-        }
-
-        loadData();
-        setTimeout(() => instantRestart(), 100);
-    </script>
+    <script src="index.js"></script>
 </body>
-
-
 </html>
-
